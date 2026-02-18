@@ -15,6 +15,29 @@ import SchedulerData from './SchedulerData';
 import SchedulerHeader from './SchedulerHeader';
 import wrapperFun from './WrapperFun';
 
+/**
+ * Render the scheduler UI with resource and agenda views, responsive sizing, and drag-and-drop support.
+ *
+ * @param {object} props - Component properties.
+ * @param {SchedulerData} props.schedulerData - Scheduler state and configuration used to drive rendering and behavior.
+ * @param {Array<DnDSource>} [props.dndSources] - Additional drag-and-drop sources to merge into the
+ * scheduler's DnD context.
+ * @param {React.RefObject<HTMLElement>} [props.parentRef] - Parent element ref used when sizing
+ * is driven by the parent container.
+ * @param {function(SchedulerData):void} props.prevClick - Callback invoked to navigate to the previous range.
+ * @param {function(SchedulerData):void} props.nextClick - Callback invoked to navigate to the next range.
+ * @param {function(SchedulerData, object):void} props.onViewChange - Callback invoked when the view type,
+ * agenda toggle, or perspective changes.
+ * @param {function(SchedulerData, string|Date):void} props.onSelectDate - Callback invoked when a date is selected.
+ * @param {React.ReactNode} [props.leftCustomHeader] - Optional custom content rendered on the left side of the header.
+ * @param {React.ReactNode} [props.rightCustomHeader] - Optional custom content rendered on the
+ * right side of the header.
+ * @param {function} [props.CustomResourceHeader] - Optional component used to render the resource header cell.
+ * @param {object} [props.configTableHeaderStyle] - Optional inline style object applied
+ * to the resource header container.
+ * @returns {JSX.Element} The scheduler root element tree to be rendered.
+ */
+
 function Scheduler(props) {
   const {
     schedulerData,
@@ -28,7 +51,6 @@ function Scheduler(props) {
     rightCustomHeader,
     ViewButtonRender,
     CustomLoader,
-    showWeekNumber,
     CustomResourceHeader,
     CustomResourceCell,
     configTableHeaderStyle,
@@ -376,6 +398,8 @@ function Scheduler(props) {
   const width = schedulerData.getSchedulerWidth();
   const { contentScrollbarHeight, contentScrollbarWidth, resourceScrollbarHeight, resourceScrollbarWidth } = state;
 
+  const { showWeekNumber, weekNumberRowHeight } = config;
+
   let tbodyContent = <tr />;
   if (showAgenda) {
     tbodyContent = <AgendaView {...props} />;
@@ -418,13 +442,14 @@ function Scheduler(props) {
     };
 
     if (config.schedulerMaxHeight > 0) {
+      const totalHeaderHeight = config.tableHeaderHeight + (showWeekNumber ? weekNumberRowHeight : 0);
       schedulerContentStyle = {
         ...schedulerContentStyle,
-        maxHeight: config.schedulerMaxHeight - config.tableHeaderHeight,
+        maxHeight: config.schedulerMaxHeight - totalHeaderHeight,
       };
       resourceContentStyle = {
         ...resourceContentStyle,
-        maxHeight: config.schedulerMaxHeight - config.tableHeaderHeight,
+        maxHeight: config.schedulerMaxHeight - totalHeaderHeight,
       };
     } else if (config.responsiveByParent && schedulerData.documentHeight > 0) {
       // Responsive height minus SchedulerHeader
@@ -454,8 +479,8 @@ function Scheduler(props) {
           <div className="resource-view">
             <div
               style={{
-                borderBottom: '1px solid #e9e9e9',
-                height: showWeekNumber ? config.tableHeaderHeight + 24 : config.tableHeaderHeight,
+                borderBottom: `1px solid ${config.headerBorderColor ?? '#e9e9e9'}`,
+                height: config.tableHeaderHeight + (showWeekNumber ? weekNumberRowHeight : 0),
                 ...configTableHeaderStyle,
               }}
             >
@@ -464,22 +489,21 @@ function Scheduler(props) {
                   overflowX: 'scroll',
                   overflowY: 'hidden',
                   margin: `0px 0px -${contentScrollbarHeight}px`,
-                  overflow: 'visible',
                 }}
               >
                 <table className="resource-table">
                   <thead>
                     {showWeekNumber && (
-                      <tr style={{ height: 24 }}>
+                      <tr style={{ height: weekNumberRowHeight }}>
                         <th
                           style={{
-                            borderBottom: '1px solid #e9e9e9',
+                            borderBottom: `1px solid ${config.headerBorderColor ?? '#e9e9e9'}`,
                             fontSize: '0.85em',
                             opacity: 0.7,
                             padding: '4px 8px',
                           }}
                         >
-                          Week No.
+                          {config.weekNumberLabel ?? 'Week No.'}
                         </th>
                       </tr>
                     )}
@@ -512,8 +536,8 @@ function Scheduler(props) {
             <div
               style={{
                 overflow: 'hidden',
-                borderBottom: '1px solid #e9e9e9',
-                height: showWeekNumber ? config.tableHeaderHeight + 24 : config.tableHeaderHeight,
+                borderBottom: `1px solid ${config.headerBorderColor ?? '#e9e9e9'}`,
+                height: config.tableHeaderHeight + (showWeekNumber ? weekNumberRowHeight : 0),
               }}
             >
               <div
@@ -531,7 +555,7 @@ function Scheduler(props) {
                   style={{ paddingRight: `${contentScrollbarWidth}px`, width: schedulerWidth + contentScrollbarWidth }}
                 >
                   <table className="scheduler-bg-table">
-                    <HeaderView {...props} showWeekNumber={showWeekNumber} />
+                    <HeaderView {...props} />
                   </table>
                 </div>
               </div>
@@ -633,7 +657,6 @@ Scheduler.propTypes = {
   onScrollRight: PropTypes.func,
   onScrollTop: PropTypes.func,
   onScrollBottom: PropTypes.func,
-  showWeekNumber: PropTypes.bool,
   CustomResourceHeader: PropTypes.func,
   CustomResourceCell: PropTypes.func,
   configTableHeaderStyle: PropTypes.object,

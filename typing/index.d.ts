@@ -137,7 +137,7 @@ export interface CustomResourceCellProps<EventType extends EventItem = EventItem
   item: ResourceEvent<EventType, ResourceType>;
   indents: React.ReactNode[];
   slotClickedFunc?: (schedulerData: SchedulerData<EventType>, slot: ResourceEvent<EventType, ResourceType>) => void;
-  toggleExpandFunc: () => void;
+  handleToggleExpand: (item: ResourceEvent<EventType, ResourceType>) => void;
 }
 
 export interface AddMorePopoverProps<EventType extends EventItem = EventItem> {
@@ -415,6 +415,10 @@ export interface SchedulerDataConfig {
   minuteStep?: number;
   views?: View[];
   responsiveByParent?: boolean;
+  showWeekNumber?: boolean;
+  weekNumberRowHeight?: number;
+  weekNumberLabel?: string;
+  headerBorderColor?: string;
 }
 
 export enum SummaryPos {

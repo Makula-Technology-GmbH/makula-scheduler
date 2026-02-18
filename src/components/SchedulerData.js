@@ -6,6 +6,7 @@ import weekday from 'dayjs/plugin/weekday';
 import { RRuleSet, rrulestr } from 'rrule';
 import { CellUnit, DATE_FORMAT, DATETIME_FORMAT, ViewType } from '../config/default';
 import config from '../config/scheduler';
+import { getDefaultLabels, getLabel } from '../config/i18n';
 import behaviors from '../helper/behaviors';
 
 export default class SchedulerData {
@@ -39,6 +40,7 @@ export default class SchedulerData {
     dayjs.extend(utc);
     this.localeDayjs = dayjs;
     this.config = newConfig === undefined ? config : { ...config, ...newConfig };
+    this._updateLabelsFromI18n();
     this._validateMinuteStep(this.config.minuteStep);
     this.behaviors = newBehaviors === undefined ? behaviors : { ...behaviors, ...newBehaviors };
     this._resolveDate(0, date);
@@ -46,10 +48,30 @@ export default class SchedulerData {
     this._createRenderData();
   }
 
+  /**
+   * Update user-facing labels from the i18n provider
+   * This allows apps to provide localized labels via setLabelsProvider()
+   * @private
+   */
+  _updateLabelsFromI18n(locale) {
+    // Get labels from the i18n provider if available
+    const defaults = getDefaultLabels();
+    const applyIfProvided = (key, current) => {
+      const value = getLabel(key, locale);
+      if (value === undefined || value === null) return current;
+      return value !== defaults[key] ? value : current;
+    };
+    this.config.resourceName = applyIfProvided('resourceName', this.config.resourceName);
+    this.config.taskName = applyIfProvided('taskName', this.config.taskName);
+    this.config.agendaViewHeader = applyIfProvided('agendaViewHeader', this.config.agendaViewHeader);
+    this.config.weekNumberLabel = applyIfProvided('weekNumberLabel', this.config.weekNumberLabel);
+  }
+
   setSchedulerLocale(preset) {
     if (!preset) return;
 
     this.localeDayjs.locale(preset);
+    this._updateLabelsFromI18n(preset);
     this._shouldReloadViewType = true;
     this.setViewType(this.viewType, this.showAgenda, this.isEventPerspective);
   }
@@ -683,11 +705,10 @@ export default class SchedulerData {
       case ViewType.Week:
         if (date !== undefined) {
           this.startDate = this.selectDate.startOf('isoWeek');
-          this.endDate = this.startDate.endOf('isoWeek');
         } else {
           this.startDate = this.startDate.add(num, 'weeks');
-          this.endDate = this.startDate.endOf('isoWeek');
         }
+        this.endDate = this.startDate.endOf('isoWeek');
         break;
 
       case ViewType.Day:
@@ -803,54 +824,6 @@ export default class SchedulerData {
     this.headers = headers;
   }
 
-  // Fix Optimited code
-  // _createHeaders() {
-  //   const headers = [];
-  //   const start = this.localeDayjs(new Date(this.startDate));
-  //   const end = this.localeDayjs(new Date(this.endDate));
-
-  //   const processHeader = (header, format, unit, incrementFn) => {
-  //     let head = header;
-  //     while (head >= start && head <= end) {
-  //       const time = head.format(format);
-  //       if (unit === CellUnit.Day) {
-  //         const dayOfWeek = head.weekday();
-  //         if (this.config.displayWeekend || (dayOfWeek !== 0 && dayOfWeek !== 6)) {
-  //           const nonWorkingTime = this.behaviors.isNonWorkingTimeFunc(this, time);
-  //           headers.push({ time, nonWorkingTime });
-  //         }
-  //       } else {
-  //         headers.push({ time });
-  //       }
-  //       head = head.add(1, incrementFn);
-  //     }
-  //   };
-
-  //   if (this.showAgenda) {
-  //     headers.push({ time: start.format(DATETIME_FORMAT), nonWorkingTime: false });
-  //   } else if (this.cellUnit === CellUnit.Hour) {
-  //     const hourIncrement = this.config.minuteStep < 60 ? 'minutes' : 'hours';
-  //     const minuteSteps = this.getMinuteStepsInHour();
-  //     let header = start.hour() === 0 ? start.add(this.config.dayStartFrom, 'hours') : start;
-  //     while (header <= end) {
-  //       const hour = header.hour();
-  //       if (hour >= this.config.dayStartFrom && hour <= this.config.dayStopTo) {
-  //         const time = header.format(DATETIME_FORMAT);
-  //         const nonWorkingTime = this.behaviors.isNonWorkingTimeFunc(this, time);
-  //         headers.push({ time, nonWorkingTime });
-  //       }
-  //       header = header.add(minuteSteps, hourIncrement);
-  //     }
-  //   } else {
-  //     const header = start;
-  //     const format = this.cellUnit === CellUnit.Day ? DATETIME_FORMAT : DATE_FORMAT;
-  //     const incrementFn = this.cellUnit === CellUnit.Day ? 'days' : `${this.cellUnit}s`;
-  //     processHeader(header, format, this.cellUnit, incrementFn);
-  //   }
-
-  //   this.headers = headers;
-  // }
-
   _createInitHeaderEvents(header) {
     const start = this.localeDayjs(new Date(header.time));
     const startValue = start.format(DATETIME_FORMAT);
@@ -944,6 +917,7 @@ export default class SchedulerData {
       const headerEvents = headers.map(header => this._createInitHeaderEvents(header));
 
       const slotRenderData = {
+        ...slot,
         slotId: slot.id,
         slotName: slot.name,
         slotTitle: slot.title,
@@ -962,8 +936,10 @@ export default class SchedulerData {
         render: true,
         ...slot,
       };
+
       const { id } = slot;
       let value;
+
       if (slotMap.has(id)) {
         value = slotMap.get(id);
         value.data = slotRenderData;
@@ -976,10 +952,12 @@ export default class SchedulerData {
       }
 
       const { parentId } = slot;
+
       if (!parentId || parentId === id) {
         slotTree.push(value);
       } else {
         let parentValue;
+
         if (slotMap.has(parentId)) {
           parentValue = slotMap.get(parentId);
         } else {
@@ -996,11 +974,15 @@ export default class SchedulerData {
 
     const slotStack = [];
     let i;
+
     for (i = slotTree.length - 1; i >= 0; i -= 1) {
       slotStack.push(slotTree[i]);
     }
+
     const initRenderData = [];
+
     let currentNode;
+
     while (slotStack.length > 0) {
       currentNode = slotStack.pop();
       if (currentNode.data.indent > 0) {
@@ -1023,12 +1005,6 @@ export default class SchedulerData {
 
   _getSpan(startTime, endTime, headers) {
     if (this.showAgenda) return 1;
-
-    // function startOfWeek(date) {
-    //   const day = date.getDay();
-    //   const diff = date.getDate() - day;
-    //   return new Date(date.getFullYear(), date.getMonth(), diff);
-    // }
 
     const timeBetween = (date1, date2, timeIn) => {
       if (timeIn === 'days' || timeIn === 'day') {
@@ -1244,7 +1220,6 @@ export default class SchedulerData {
               const previousHeaderEnd = new Date(previousHeader.end);
               if (previousHeaderEnd <= eventStart || previousHeaderStart >= eventEnd) render = true;
             }
-            // console.log(`span: ${span}`)
             header.events[pos] = this._createHeaderEvent(render, span, item);
           }
         });

@@ -14,3 +14,5 @@ export {
   ViewType,
   wrapperFun,
 } from './components/index';
+
+export { getLabel, setLabelsProvider, getDefaultLabels, resetLabelsProvider } from './config/i18n';
