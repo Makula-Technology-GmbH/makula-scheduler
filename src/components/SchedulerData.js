@@ -34,10 +34,10 @@ export default class SchedulerData {
     this._shouldReloadViewType = false;
 
     this.calendarPopoverLocale = undefined;
-    dayjs.extend(isoWeek);
     dayjs.extend(quarterOfYear);
     dayjs.extend(weekday);
     dayjs.extend(utc);
+    dayjs.extend(isoWeek);
     this.localeDayjs = dayjs;
     this.config = newConfig === undefined ? config : { ...config, ...newConfig };
     this._updateLabelsFromI18n();
@@ -1008,7 +1008,11 @@ export default class SchedulerData {
 
     const timeBetween = (date1, date2, timeIn) => {
       if (timeIn === 'days' || timeIn === 'day') {
-        if (date1.getDate() === date2.getDate() && date1.getMonth() === date2.getMonth()) {
+        if (
+          date1.getDate() === date2.getDate() &&
+          date1.getMonth() === date2.getMonth() &&
+          date1.getFullYear() === date2.getFullYear()
+        ) {
           return 1;
         }
       }
@@ -1068,6 +1072,8 @@ export default class SchedulerData {
     ) {
       const startDate = windowStart < eventStart ? eventStart : windowStart;
       const endDate = windowEnd > eventEnd ? eventEnd : windowEnd;
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59);
       span = Math.ceil(timeBetween(startDate, endDate, 'days'));
     } else {
       if (this.cellUnit === CellUnit.Day) {
