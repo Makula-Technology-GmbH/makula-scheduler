@@ -404,6 +404,7 @@ export interface SchedulerDataConfig {
   relativeMove?: boolean;
   defaultExpanded?: boolean;
   dragAndDropEnabled?: boolean;
+  snapToGrid?: boolean;
   schedulerHeaderEventsFuncsTimeoutMs?: number;
   resourceName?: string;
   taskName?: string;

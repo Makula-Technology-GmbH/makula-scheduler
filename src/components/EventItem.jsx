@@ -167,9 +167,9 @@ class EventItem extends Component {
       const snappedCells = Math.round(deltaX / cellWidth);
       const newLeftIndex = leftIndex + snappedCells;
       const clampedLeftIndex = Math.max(0, Math.min(newLeftIndex, rightIndex - 1));
-      const clampedOffset = clampedLeftIndex > 0 ? 5 : 6;
+      const originalRightEdge = left + width;
       newLeft = clampedLeftIndex * cellWidth + (clampedLeftIndex > 0 ? 2 : 3);
-      newWidth = (rightIndex - clampedLeftIndex) * cellWidth - clampedOffset;
+      newWidth = originalRightEdge - newLeft;
     } else {
       newLeft = left + clientX - startX;
       newWidth = width + startX - clientX;
