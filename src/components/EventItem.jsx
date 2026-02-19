@@ -164,12 +164,17 @@ class EventItem extends Component {
 
     if (config.snapToGrid) {
       const deltaX = clientX - startX;
-      const snappedCells = Math.round(deltaX / cellWidth);
-      const newLeftIndex = leftIndex + snappedCells;
-      const clampedLeftIndex = Math.max(0, Math.min(newLeftIndex, rightIndex - 1));
+      const snappedDelta = Math.round(deltaX / cellWidth) * cellWidth;
       const originalRightEdge = left + width;
-      newLeft = clampedLeftIndex * cellWidth + (clampedLeftIndex > 0 ? 2 : 3);
+      newLeft = left + snappedDelta;
       newWidth = originalRightEdge - newLeft;
+      if (newWidth < minWidth) {
+        newWidth = minWidth;
+        newLeft = originalRightEdge - minWidth;
+      } else if (newWidth > maxWidth) {
+        newWidth = maxWidth;
+        newLeft = originalRightEdge - maxWidth;
+      }
     } else {
       newLeft = left + clientX - startX;
       newWidth = width + startX - clientX;
@@ -313,7 +318,7 @@ class EventItem extends Component {
     } else {
       clientX = ev.clientX;
     }
-    const { width, leftIndex, rightIndex, schedulerData } = this.props;
+    const { width, leftIndex, schedulerData } = this.props;
     const { headers, config } = schedulerData;
     const cellWidth = schedulerData.getContentCellWidth();
     const offset = leftIndex > 0 ? 5 : 6;
@@ -325,10 +330,10 @@ class EventItem extends Component {
 
     if (config.snapToGrid) {
       const deltaX = clientX - endX;
-      const snappedCells = Math.round(deltaX / cellWidth);
-      const currentSpan = rightIndex - leftIndex;
-      const newSpan = Math.max(1, Math.min(currentSpan + snappedCells, headers.length - leftIndex));
-      newWidth = newSpan * cellWidth - offset;
+      const snappedDelta = Math.round(deltaX / cellWidth) * cellWidth;
+      newWidth = width + snappedDelta;
+      if (newWidth < minWidth) newWidth = minWidth;
+      else if (newWidth > maxWidth) newWidth = maxWidth;
     } else {
       newWidth = width + clientX - endX;
       if (newWidth < minWidth) newWidth = minWidth;
