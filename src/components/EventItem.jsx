@@ -152,19 +152,34 @@ class EventItem extends Component {
       clientX = ev.clientX;
     }
     const { left, width, leftIndex, rightIndex, schedulerData } = this.props;
+    const { config } = schedulerData;
     const cellWidth = schedulerData.getContentCellWidth();
     const offset = leftIndex > 0 ? 5 : 6;
     const minWidth = cellWidth - offset;
     const maxWidth = rightIndex * cellWidth - offset;
     const { startX } = this.state;
-    let newLeft = left + clientX - startX;
-    let newWidth = width + startX - clientX;
-    if (newWidth < minWidth) {
-      newWidth = minWidth;
-      newLeft = (rightIndex - 1) * cellWidth + (rightIndex - 1 > 0 ? 2 : 3);
-    } else if (newWidth > maxWidth) {
-      newWidth = maxWidth;
-      newLeft = 3;
+
+    let newLeft;
+    let newWidth;
+
+    if (config.snapToGrid) {
+      const deltaX = clientX - startX;
+      const snappedCells = Math.round(deltaX / cellWidth);
+      const newLeftIndex = leftIndex + snappedCells;
+      const clampedLeftIndex = Math.max(0, Math.min(newLeftIndex, rightIndex - 1));
+      const clampedOffset = clampedLeftIndex > 0 ? 5 : 6;
+      newLeft = clampedLeftIndex * cellWidth + (clampedLeftIndex > 0 ? 2 : 3);
+      newWidth = (rightIndex - clampedLeftIndex) * cellWidth - clampedOffset;
+    } else {
+      newLeft = left + clientX - startX;
+      newWidth = width + startX - clientX;
+      if (newWidth < minWidth) {
+        newWidth = minWidth;
+        newLeft = (rightIndex - 1) * cellWidth + (rightIndex - 1 > 0 ? 2 : 3);
+      } else if (newWidth > maxWidth) {
+        newWidth = maxWidth;
+        newLeft = 3;
+      }
     }
 
     this.setState({ left: newLeft, width: newWidth });
@@ -298,17 +313,27 @@ class EventItem extends Component {
     } else {
       clientX = ev.clientX;
     }
-    const { width, leftIndex, schedulerData } = this.props;
-    const { headers } = schedulerData;
+    const { width, leftIndex, rightIndex, schedulerData } = this.props;
+    const { headers, config } = schedulerData;
     const cellWidth = schedulerData.getContentCellWidth();
     const offset = leftIndex > 0 ? 5 : 6;
     const minWidth = cellWidth - offset;
     const maxWidth = (headers.length - leftIndex) * cellWidth - offset;
     const { endX } = this.state;
 
-    let newWidth = width + clientX - endX;
-    if (newWidth < minWidth) newWidth = minWidth;
-    else if (newWidth > maxWidth) newWidth = maxWidth;
+    let newWidth;
+
+    if (config.snapToGrid) {
+      const deltaX = clientX - endX;
+      const snappedCells = Math.round(deltaX / cellWidth);
+      const currentSpan = rightIndex - leftIndex;
+      const newSpan = Math.max(1, Math.min(currentSpan + snappedCells, headers.length - leftIndex));
+      newWidth = newSpan * cellWidth - offset;
+    } else {
+      newWidth = width + clientX - endX;
+      if (newWidth < minWidth) newWidth = minWidth;
+      else if (newWidth > maxWidth) newWidth = maxWidth;
+    }
 
     this.setState({ width: newWidth });
   };

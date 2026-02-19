@@ -83,6 +83,7 @@ export default {
   relativeMove: true,
   defaultExpanded: true,
   dragAndDropEnabled: true,
+  snapToGrid: false,
 
   schedulerHeaderEventsFuncsTimeoutMs: 100,
 
