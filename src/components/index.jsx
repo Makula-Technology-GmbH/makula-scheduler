@@ -429,6 +429,7 @@ function Scheduler(props) {
       overflowY: 'auto',
       margin: '0px',
       position: 'relative',
+      overscrollBehaviorX: 'none',
       height: contentHeight,
       paddingBottom: contentPaddingBottom,
     };
