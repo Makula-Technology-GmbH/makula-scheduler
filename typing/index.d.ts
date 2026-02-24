@@ -464,3 +464,34 @@ export interface SchedulerDataBehaviors<EventType extends EventItem = EventItem>
 export const DATE_FORMAT = 'YYYY-MM-DD';
 
 export const DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+
+export interface MonthCalendarEvent {
+  id: string | number;
+  title: string;
+  start: string;
+  end: string;
+  bgColor?: string;
+  [x: string]: unknown;
+}
+
+export interface MonthCalendarViewProps {
+  events?: MonthCalendarEvent[];
+  date?: string | Dayjs | Date;
+  onEventClick?: (event: MonthCalendarEvent) => void;
+  CustomEventPopover?: (
+    event: MonthCalendarEvent,
+    title: string,
+    start: Dayjs,
+    end: Dayjs,
+    color: string
+  ) => React.ReactNode;
+  eventItemPopoverEnabled?: boolean;
+  eventItemPopoverTrigger?: 'hover' | 'click';
+  maxEventsPerCell?: number;
+  onMoreClick?: (date: Dayjs, events: MonthCalendarEvent[]) => void;
+  weekStartsOn?: 0 | 1;
+  headerFormat?: string;
+  className?: string;
+}
+
+export const MonthCalendarView: React.FC<MonthCalendarViewProps>;
