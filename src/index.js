@@ -8,6 +8,7 @@ export {
   DemoData,
   DnDContext,
   DnDSource,
+  MonthCalendarView,
   Scheduler,
   SchedulerData,
   SummaryPos,

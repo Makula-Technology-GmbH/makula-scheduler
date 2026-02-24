@@ -9,6 +9,7 @@ import BodyView from './BodyView';
 import DnDContext from './DnDContext';
 import DnDSource from './DnDSource';
 import HeaderView from './HeaderView';
+import MonthCalendarView from './MonthCalendarView';
 import ResourceEvents from './ResourceEvents';
 import ResourceView from './ResourceView';
 import SchedulerData from './SchedulerData';
@@ -671,6 +672,7 @@ export {
   DemoData,
   DnDContext,
   DnDSource,
+  MonthCalendarView,
   Scheduler,
   SchedulerData,
   SummaryPos,

@@ -1,0 +1,109 @@
+.rbs-month-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid #e9e9e9;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.rbs-month-calendar-header-cell {
+  padding: 8px 4px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  color: #666;
+  border-bottom: 1px solid #e9e9e9;
+  border-right: 1px solid #e9e9e9;
+  background: #fafafa;
+}
+
+.rbs-month-calendar-header-cell:last-child {
+  border-right: none;
+}
+
+.rbs-month-calendar-cell {
+  min-height: 100px;
+  border-bottom: 1px solid #e9e9e9;
+  border-right: 1px solid #e9e9e9;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+}
+
+.rbs-month-calendar-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.rbs-month-calendar-cell:nth-last-child(-n+7) {
+  border-bottom: none;
+}
+
+.rbs-month-calendar-cell--outside {
+  background: #fafafa;
+}
+
+.rbs-month-calendar-cell--outside .rbs-month-calendar-day-number {
+  color: #bbb;
+}
+
+.rbs-month-calendar-cell--today .rbs-month-calendar-day-number {
+  background: #1890ff;
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rbs-month-calendar-day-number {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+  line-height: 24px;
+}
+
+.rbs-month-calendar-events {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rbs-month-calendar-event {
+  display: block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.rbs-month-calendar-event:hover {
+  opacity: 0.85;
+}
+
+.rbs-month-calendar-more {
+  font-size: 11px;
+  color: #1890ff;
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-top: 2px;
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+.rbs-month-calendar-more:hover {
+  text-decoration: underline;
+}
