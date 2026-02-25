@@ -488,8 +488,6 @@ function Scheduler(props) {
             >
               <div
                 style={{
-                  overflowX: 'scroll',
-                  overflowY: 'hidden',
                   margin: `0px 0px -${contentScrollbarHeight}px`,
                 }}
               >
@@ -543,7 +541,12 @@ function Scheduler(props) {
               }}
             >
               <div
-                style={{ overflowX: 'scroll', overflowY: 'hidden', margin: `0px 0px -${contentScrollbarHeight}px` }}
+                style={{
+                  overflowX: 'scroll',
+                  overflowY: 'hidden',
+                  margin: `0px 0px -${contentScrollbarHeight}px`,
+                  overscrollBehavior: 'none',
+                }}
                 ref={schedulerHeadRef}
                 onMouseOver={onSchedulerHeadMouseOver}
                 onFocus={onSchedulerHeadMouseOver}
@@ -571,7 +574,7 @@ function Scheduler(props) {
               onBlur={onSchedulerContentMouseOut}
               onScroll={onSchedulerContentScroll}
             >
-              <div style={{ width: schedulerWidth }}>
+              <div style={{ width: schedulerWidth, overflow: 'hidden' }}>
                 <div className="scheduler-content">
                   <table className="scheduler-content-table">
                     <tbody>{resourceEventsList}</tbody>
