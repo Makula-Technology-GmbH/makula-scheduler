@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
 import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
+import isoWeek from 'dayjs/plugin/isoWeek';
 import { RRuleSet, rrulestr } from 'rrule';
 import { CellUnit, DATE_FORMAT, DATETIME_FORMAT, ViewType } from '../config/default';
 import config from '../config/scheduler';
@@ -1194,12 +1194,34 @@ export default class SchedulerData {
         const span = this._getSpan(item.start, item.end, this.headers);
         const eventStart = new Date(item.start);
         const eventEnd = new Date(item.end);
-        let pos = -1;
 
+        // Collect all overlapping headers first
+        const overlappingHeaders = [];
         resourceEvents.headerItems.forEach((header, index) => {
           const headerStart = new Date(header.start);
           const headerEnd = new Date(header.end);
           if (headerEnd > eventStart && headerStart < eventEnd) {
+            overlappingHeaders.push({ header, index });
+          }
+        });
+
+        if (overlappingHeaders.length > 0) {
+          // Find a pos that is free across ALL overlapping headers
+          let pos = 0;
+          let posFound = false;
+          while (!posFound) {
+            posFound = true;
+            for (let i = 0; i < overlappingHeaders.length; i += 1) {
+              if (overlappingHeaders[i].header.events[pos] !== undefined) {
+                posFound = false;
+                pos += 1;
+                break;
+              }
+            }
+          }
+
+          // Place the event at the found pos across all overlapping headers
+          overlappingHeaders.forEach(({ header, index }) => {
             header.count += 1;
             if (header.count > resourceEvents.rowMaxCount) {
               resourceEvents.rowMaxCount = header.count;
@@ -1213,12 +1235,7 @@ export default class SchedulerData {
               if (newRowHeight > resourceEvents.rowHeight) resourceEvents.rowHeight = newRowHeight;
             }
 
-            if (pos === -1) {
-              let tmp = 0;
-              while (header.events[tmp] !== undefined) tmp += 1;
-
-              pos = tmp;
-            }
+            const headerStart = new Date(header.start);
             let render = headerStart <= eventStart || index === 0;
             if (render === false) {
               const previousHeader = resourceEvents.headerItems[index - 1];
@@ -1227,8 +1244,8 @@ export default class SchedulerData {
               if (previousHeaderEnd <= eventStart || previousHeaderStart >= eventEnd) render = true;
             }
             header.events[pos] = this._createHeaderEvent(render, span, item);
-          }
-        });
+          });
+        }
       }
     });
 
