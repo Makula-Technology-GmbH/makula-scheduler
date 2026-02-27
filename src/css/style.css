@@ -229,6 +229,17 @@
   position: absolute;
 }
 
+.rbs .event-drop-shadow {
+  position: absolute;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 14px;
+  transition:
+    left 0.1s ease,
+    width 0.1s ease;
+}
+
 /* Slots and Cells */
 .rbs .slot-cell,
 .rbs .slot-text {

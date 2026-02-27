@@ -54,6 +54,10 @@ export default class DnDContext {
           .format(DATETIME_FORMAT);
       }
 
+      if (component && component.clearShadowState) {
+        component.clearShadowState();
+      }
+
       return {
         slotId: resourceEvents.slotId,
         slotName: resourceEvents.slotName,
@@ -133,6 +137,37 @@ export default class DnDContext {
 
       if (movingEvent) {
         movingEvent(schedulerData, slotId, slotName, newStart, newEnd, action, type, item);
+      }
+
+      // Compute and set drop shadow position
+      if (config.snapToGrid && component && component.setShadowState) {
+        const shadowStartDayjs = localeDayjs(newStart);
+        const shadowEndDayjs = localeDayjs(newEnd);
+        let shadowLeftIndex = -1;
+        let shadowSpan = 0;
+
+        resourceEvents.headerItems.forEach((header, idx) => {
+          const headerStart = new Date(header.start);
+          const headerEnd = new Date(header.end);
+          if (headerEnd > shadowStartDayjs.toDate() && headerStart < shadowEndDayjs.toDate()) {
+            if (shadowLeftIndex === -1) shadowLeftIndex = idx;
+            shadowSpan += 1;
+          }
+        });
+
+        if (shadowLeftIndex >= 0 && shadowSpan > 0) {
+          const shadowLeft = shadowLeftIndex * cellWidth + (shadowLeftIndex > 0 ? 2 : 3);
+          const shadowWidth =
+            shadowSpan * cellWidth - (shadowLeftIndex > 0 ? 5 : 6) > 0
+              ? shadowSpan * cellWidth - (shadowLeftIndex > 0 ? 5 : 6)
+              : 0;
+          component.setShadowState({
+            left: shadowLeft,
+            width: shadowWidth,
+            top: 1,
+            bgColor: isEvent ? item.bgColor : config.defaultEventBgColor,
+          });
+        }
       }
     },
 

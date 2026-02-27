@@ -1,6 +1,6 @@
 import { PropTypes } from 'prop-types';
 // eslint-disable-next-line no-unused-vars
-import React, { Component, useRef } from 'react';
+import React, { Component, useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { CellUnit, DATETIME_FORMAT, DnDTypes, SummaryPos } from '../config/default';
 import { getPos } from '../helper/utility';
@@ -37,6 +37,7 @@ class ResourceEvents extends Component {
       isSelecting: false,
       left: 0,
       width: 0,
+      shadowState: null,
     };
     this.supportTouch = false; // 'ontouchstart' in window;
   }
@@ -275,6 +276,14 @@ class ResourceEvents extends Component {
     }
   };
 
+  setShadowState = shadow => {
+    this.setState({ shadowState: shadow });
+  };
+
+  clearShadowState = () => {
+    this.setState({ shadowState: null });
+  };
+
   eventContainerRef = element => {
     this.eventContainer = element;
     // Also set the drop ref if it exists
@@ -287,7 +296,7 @@ class ResourceEvents extends Component {
   render() {
     const { resourceEvents, schedulerData, dndSource } = this.props;
     const { cellUnit, startDate, endDate, config, localeDayjs } = schedulerData;
-    const { isSelecting, left, width } = this.state;
+    const { isSelecting, left, width, shadowState } = this.state;
     const cellWidth = schedulerData.getContentCellWidth();
     const cellMaxEvents = schedulerData.getCellMaxEvents();
     const rowWidth = schedulerData.getContentTableWidth();
@@ -430,9 +439,24 @@ class ResourceEvents extends Component {
       }
     });
 
+    const dropShadow =
+      shadowState && config.snapToGrid ? (
+        <div
+          className="event-drop-shadow"
+          style={{
+            left: shadowState.left,
+            width: shadowState.width,
+            top: shadowState.top,
+            height: config.eventItemHeight,
+            backgroundColor: shadowState.bgColor || config.defaultEventBgColor,
+          }}
+        />
+      ) : null;
+
     const eventContainer = (
       <div ref={this.eventContainerRef} className="event-container" style={{ height: resourceEvents.rowHeight }}>
         {selectedArea}
+        {dropShadow}
         {eventList}
       </div>
     );
@@ -473,6 +497,12 @@ const ResourceEventsWithDnD = props => {
       }),
     };
   }, [props, dndContext, config.dragAndDropEnabled]);
+
+  useEffect(() => {
+    if (!isOver && componentRef.current) {
+      componentRef.current.clearShadowState();
+    }
+  }, [isOver]);
 
   return <ResourceEvents ref={componentRef} {...props} dropRef={dropRef} isOver={isOver} canDrop={canDrop} />;
 };
