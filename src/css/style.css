@@ -188,6 +188,29 @@
   border-radius: 0;
 }
 
+/* Overflow Arrow Indicators */
+.rbs .event-overflow-arrow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  z-index: 3;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: bold;
+  pointer-events: none;
+  user-select: none;
+}
+
+.rbs .event-overflow-arrow-left {
+  left: 2px;
+}
+
+.rbs .event-overflow-arrow-right {
+  right: 2px;
+}
+
 /* Utilities */
 .rbs .overflow-text {
   overflow: hidden;

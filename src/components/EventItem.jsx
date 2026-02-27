@@ -544,6 +544,21 @@ class EventItem extends Component {
     if (endResizable(this.props))
       endResizeDiv = <div className="event-resizer event-end-resizer" ref={ref => (this.endResizer = ref)} />;
 
+    const showOverflowArrows = config.overflowArrowsEnabled !== false;
+    const arrowStyle = { lineHeight: `${config.eventItemHeight}px` };
+    const showLeftArrow = showOverflowArrows && !isStart;
+    const showRightArrow = showOverflowArrows && !isEnd;
+    const leftArrow = showLeftArrow ? (
+      <span className="event-overflow-arrow event-overflow-arrow-left" style={arrowStyle}>
+        &#8249;
+      </span>
+    ) : null;
+    const rightArrow = showRightArrow ? (
+      <span className="event-overflow-arrow event-overflow-arrow-right" style={arrowStyle}>
+        &#8250;
+      </span>
+    ) : null;
+
     let eventItemTemplate = (
       <div
         className={`${roundCls} event-item`}
@@ -562,7 +577,9 @@ class EventItem extends Component {
         isEnd,
         'event-item',
         config.eventItemHeight,
-        undefined
+        undefined,
+        showLeftArrow,
+        showRightArrow
       );
     }
 
@@ -576,9 +593,11 @@ class EventItem extends Component {
           if (eventItemClick) eventItemClick(schedulerData, eventItem);
         }}
       >
+        {leftArrow}
         {eventItemTemplate}
         {startResizeDiv}
         {endResizeDiv}
+        {rightArrow}
       </a>
     );
 

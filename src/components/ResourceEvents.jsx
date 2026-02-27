@@ -358,6 +358,18 @@ class ResourceEvents extends Component {
               width = evt.span * cellWidth - (index > 0 ? 5 : 6) > 0 ? evt.span * cellWidth - (index > 0 ? 5 : 6) : 0;
             }
 
+            if (config.overflowArrowsEnabled !== false) {
+              if (!isStart) {
+                const originalLeft = left;
+                left = index * cellWidth;
+                width += originalLeft - left;
+              }
+              if (!isEnd) {
+                const rightEdge = (index + evt.span) * cellWidth;
+                width = rightEdge - left;
+              }
+            }
+
             const top = marginTop + idx * config.eventItemLineHeight;
             const eventItem = (
               <EventItem

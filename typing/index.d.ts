@@ -24,7 +24,9 @@ export interface SchedulerProps<EventType extends EventItem = EventItem> {
     isEnd: boolean,
     mustAddCssClass: string,
     mustBeHeight: number,
-    agendaMaxEventWidth: number
+    agendaMaxEventWidth: number,
+    showLeftArrow?: boolean,
+    showRightArrow?: boolean
   ) => void;
   CustomEventPopover?: (
     schedulerData: SchedulerData<EventType>,
@@ -404,6 +406,7 @@ export interface SchedulerDataConfig {
   relativeMove?: boolean;
   defaultExpanded?: boolean;
   dragAndDropEnabled?: boolean;
+  overflowArrowsEnabled?: boolean;
   snapToGrid?: boolean;
   schedulerHeaderEventsFuncsTimeoutMs?: number;
   resourceName?: string;
