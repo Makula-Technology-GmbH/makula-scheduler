@@ -548,16 +548,18 @@ class EventItem extends Component {
     const arrowStyle = { lineHeight: `${config.eventItemHeight}px` };
     const showLeftArrow = showOverflowArrows && !isStart;
     const showRightArrow = showOverflowArrows && !isEnd;
-    const leftArrow = showLeftArrow ? (
-      <span className="event-overflow-arrow event-overflow-arrow-left" style={arrowStyle}>
-        &#8249;
-      </span>
-    ) : null;
-    const rightArrow = showRightArrow ? (
-      <span className="event-overflow-arrow event-overflow-arrow-right" style={arrowStyle}>
-        &#8250;
-      </span>
-    ) : null;
+    const leftArrow =
+      showLeftArrow && !eventItemTemplateResolver ? (
+        <span className="event-overflow-arrow event-overflow-arrow-left" style={arrowStyle}>
+          &#8249;
+        </span>
+      ) : null;
+    const rightArrow =
+      showRightArrow && !eventItemTemplateResolver ? (
+        <span className="event-overflow-arrow event-overflow-arrow-right" style={arrowStyle}>
+          &#8250;
+        </span>
+      ) : null;
 
     let eventItemTemplate = (
       <div
