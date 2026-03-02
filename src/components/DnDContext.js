@@ -172,6 +172,7 @@ export default class DnDContext {
           eventItemHeight: config.eventItemHeight,
           newStart,
           newEnd,
+          eventItem: isEvent ? item : null,
         };
       }
     },

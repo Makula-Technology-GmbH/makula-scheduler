@@ -1,6 +1,5 @@
 import { PropTypes } from 'prop-types';
-// eslint-disable-next-line no-unused-vars
-import React, { Component, useRef } from 'react';
+import React, { Component } from 'react';
 import { useDrop } from 'react-dnd';
 import { CellUnit, DATETIME_FORMAT, DnDTypes, SummaryPos } from '../config/default';
 import { getPos } from '../helper/utility';
@@ -465,22 +464,39 @@ class ResourceEvents extends Component {
         }
       }
 
+      const { eventItemTemplateResolver } = this.props;
+      let previewContent = (
+        <div
+          className="round-all event-item"
+          style={{
+            height: dropPreview.eventItemHeight,
+            backgroundColor: dropPreview.bgColor,
+          }}
+        >
+          <span style={{ marginLeft: '10px', lineHeight: `${dropPreview.eventItemHeight}px` }}>
+            {dropPreview.title}
+          </span>
+        </div>
+      );
+      if (eventItemTemplateResolver && dropPreview.eventItem) {
+        previewContent = eventItemTemplateResolver(
+          schedulerData,
+          dropPreview.eventItem,
+          dropPreview.bgColor,
+          true,
+          true,
+          'event-item',
+          dropPreview.eventItemHeight,
+          undefined
+        );
+      }
+
       dropPreviewElement = (
         <a
           className="timeline-event drop-preview"
           style={{ left: previewLeft, width: Math.max(0, previewWidth), top: 1 }}
         >
-          <div
-            className="round-all event-item"
-            style={{
-              height: dropPreview.eventItemHeight,
-              backgroundColor: dropPreview.bgColor,
-            }}
-          >
-            <span style={{ marginLeft: '10px', lineHeight: `${dropPreview.eventItemHeight}px` }}>
-              {dropPreview.title}
-            </span>
-          </div>
+          {previewContent}
         </a>
       );
     }
