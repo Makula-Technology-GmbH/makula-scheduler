@@ -430,9 +430,65 @@ class ResourceEvents extends Component {
       }
     });
 
+    const { dropPreview } = this.props;
+    let dropPreviewElement = null;
+    if (dropPreview && config.dropPreviewEnabled !== false) {
+      const idx = dropPreview.leftIndex;
+      let previewLeft = idx * cellWidth + (idx > 0 ? 2 : 3);
+      let previewWidth = dropPreview.cellSpan * cellWidth - (idx > 0 ? 5 : 6);
+
+      if (cellUnit === CellUnit.Day) {
+        const previewStart = localeDayjs(dropPreview.newStart);
+        const previewEnd = localeDayjs(dropPreview.newEnd);
+        const dayStart = localeDayjs(resourceEvents.headerItems[idx].start).startOf('day');
+        const dayDurationMinutes = 1440;
+        const baseCellWidth = cellWidth - (idx > 0 ? 5 : 6);
+
+        if (dropPreview.cellSpan === 1) {
+          const startOffsetMinutes = previewStart.diff(dayStart, 'minute');
+          const eventDurationMinutes = previewEnd.diff(previewStart, 'minute');
+          const startPercentage = startOffsetMinutes / dayDurationMinutes;
+          const durationPercentage = eventDurationMinutes / dayDurationMinutes;
+          previewLeft = idx * cellWidth + (idx > 0 ? 2 : 3) + baseCellWidth * startPercentage;
+          previewWidth = Math.max(1, baseCellWidth * durationPercentage);
+        } else {
+          const eventStartDayStart = previewStart.startOf('day');
+          const eventEndDayEnd = previewEnd.endOf('day');
+          const totalSpanMinutes = eventEndDayEnd.diff(eventStartDayStart, 'minute');
+          const startOffsetMinutes = previewStart.diff(eventStartDayStart, 'minute');
+          const eventDurationMinutes = previewEnd.diff(previewStart, 'minute');
+          const startPercentage = startOffsetMinutes / dayDurationMinutes;
+          const durationPercentage = totalSpanMinutes > 0 ? eventDurationMinutes / totalSpanMinutes : 1;
+          const totalWidth = dropPreview.cellSpan * cellWidth - (idx > 0 ? 5 : 6);
+          previewLeft = idx * cellWidth + (idx > 0 ? 2 : 3) + cellWidth * startPercentage;
+          previewWidth = Math.max(1, totalWidth * durationPercentage);
+        }
+      }
+
+      dropPreviewElement = (
+        <a
+          className="timeline-event drop-preview"
+          style={{ left: previewLeft, width: Math.max(0, previewWidth), top: 1 }}
+        >
+          <div
+            className="round-all event-item"
+            style={{
+              height: dropPreview.eventItemHeight,
+              backgroundColor: dropPreview.bgColor,
+            }}
+          >
+            <span style={{ marginLeft: '10px', lineHeight: `${dropPreview.eventItemHeight}px` }}>
+              {dropPreview.title}
+            </span>
+          </div>
+        </a>
+      );
+    }
+
     const eventContainer = (
       <div ref={this.eventContainerRef} className="event-container" style={{ height: resourceEvents.rowHeight }}>
         {selectedArea}
+        {dropPreviewElement}
         {eventList}
       </div>
     );
@@ -448,16 +504,16 @@ class ResourceEvents extends Component {
 const ResourceEventsWithDnD = props => {
   const { schedulerData, dndContext } = props;
   const { config } = schedulerData;
-  const componentRef = useRef(null);
+  const componentRef = React.useRef(null);
 
   // Always call useDrop unconditionally (Rules of Hooks)
   // Disable functionality when drag and drop is not enabled
-  const [{ isOver, canDrop }, dropRef] = useDrop(() => {
+  const [{ isOver, canDrop, dropPreview }, dropRef] = useDrop(() => {
     // If drag and drop is disabled, return a no-op spec
     if (!config.dragAndDropEnabled || !dndContext) {
       return {
         accept: [],
-        collect: () => ({ isOver: false, canDrop: false }),
+        collect: () => ({ isOver: false, canDrop: false, dropPreview: null }),
       };
     }
 
@@ -467,14 +523,33 @@ const ResourceEventsWithDnD = props => {
       drop: (item, monitor) => spec.drop(props, monitor, componentRef.current),
       hover: (item, monitor) => spec.hover(props, monitor, componentRef.current),
       canDrop: (item, monitor) => spec.canDrop(props, monitor),
-      collect: monitor => ({
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-      }),
+      collect: monitor => {
+        const over = monitor.isOver();
+        const drop = monitor.canDrop();
+        let preview = null;
+        if (over && drop) {
+          // Reading getClientOffset subscribes collect to offset changes during drag
+          monitor.getClientOffset();
+          const item = monitor.getItem();
+          if (item && item._dropPreview && item._dropPreview.slotId === props.resourceEvents.slotId) {
+            preview = item._dropPreview;
+          }
+        }
+        return { isOver: over, canDrop: drop, dropPreview: preview };
+      },
     };
   }, [props, dndContext, config.dragAndDropEnabled]);
 
-  return <ResourceEvents ref={componentRef} {...props} dropRef={dropRef} isOver={isOver} canDrop={canDrop} />;
+  return (
+    <ResourceEvents
+      ref={componentRef}
+      {...props}
+      dropRef={dropRef}
+      isOver={isOver}
+      canDrop={canDrop}
+      dropPreview={dropPreview}
+    />
+  );
 };
 
 ResourceEventsWithDnD.displayName = 'ResourceEventsWithDnD';

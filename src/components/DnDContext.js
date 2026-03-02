@@ -134,6 +134,46 @@ export default class DnDContext {
       if (movingEvent) {
         movingEvent(schedulerData, slotId, slotName, newStart, newEnd, action, type, item);
       }
+
+      // Store preview data for drop indicator on the dragged item
+      if (config.dropPreviewEnabled !== false) {
+        // Find the header index that matches the adjusted newStart
+        const newStartDayjs = localeDayjs(newStart);
+        let previewLeftIndex = -1;
+        for (let i = 0; i < resourceEvents.headerItems.length; i++) {
+          const hStart = localeDayjs(resourceEvents.headerItems[i].start);
+          const hEnd = localeDayjs(resourceEvents.headerItems[i].end);
+          if (newStartDayjs >= hStart && newStartDayjs < hEnd) {
+            previewLeftIndex = i;
+            break;
+          }
+        }
+        // Fallback: if newStart is before all headers, use first cell
+        if (previewLeftIndex < 0) previewLeftIndex = 0;
+
+        const durationMs = localeDayjs(newEnd).diff(newStartDayjs, 'ms');
+        let cellDurationMs;
+        if (cellUnit === CellUnit.Hour) {
+          cellDurationMs = config.minuteStep * 60 * 1000;
+        } else {
+          cellDurationMs = 24 * 60 * 60 * 1000;
+        }
+        const cellSpan = Math.max(1, Math.ceil(durationMs / cellDurationMs));
+        const bgColor = isEvent ? item.bgColor || config.defaultEventBgColor : config.defaultEventBgColor;
+        const title = isEvent ? schedulerData.behaviors.getEventTextFunc(schedulerData, item) : '';
+
+        // Store on dragged item so collect can read it reliably
+        item._dropPreview = {
+          slotId: resourceEvents.slotId,
+          leftIndex: previewLeftIndex,
+          cellSpan,
+          bgColor,
+          title,
+          eventItemHeight: config.eventItemHeight,
+          newStart,
+          newEnd,
+        };
+      }
     },
 
     canDrop: (props, monitor) => {
@@ -154,10 +194,20 @@ export default class DnDContext {
       drop: (item, monitor) => spec.drop(props, monitor, component),
       hover: (item, monitor) => spec.hover(props, monitor, component),
       canDrop: (item, monitor) => spec.canDrop(props, monitor),
-      collect: monitor => ({
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-      }),
+      collect: monitor => {
+        const isOver = monitor.isOver();
+        const canDrop = monitor.canDrop();
+        let dropPreview = null;
+        if (isOver && canDrop) {
+          // Reading getClientOffset subscribes collect to offset changes during drag
+          monitor.getClientOffset();
+          const item = monitor.getItem();
+          if (item && item._dropPreview && item._dropPreview.slotId === props.resourceEvents.slotId) {
+            dropPreview = item._dropPreview;
+          }
+        }
+        return { isOver, canDrop, dropPreview };
+      },
     };
   };
 
