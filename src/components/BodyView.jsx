@@ -25,7 +25,7 @@ function BodyView({ schedulerData }) {
           }
         }
         return (
-          <td key={key} style={style}>
+          <td key={key} style={style} data-testid={`cell-${slotId}-${header.time}`}>
             <div />
           </td>
         );
