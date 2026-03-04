@@ -78,13 +78,16 @@ export default class DnDSource {
       }
 
       if (hasConflict) {
-        const { conflictOccurred } = props;
+        const conflictOccurred = props.conflictOccurred || dropResult.conflictOccurred;
         if (conflictOccurred !== undefined) {
           conflictOccurred(schedulerData, action, item, type, slotId, slotName, newStart, newEnd);
         } else {
           console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
         }
-      } else if (isEvent) {
+        if (!config.allowConflicts) return;
+      }
+
+      if (isEvent) {
         if (moveEvent !== undefined) {
           moveEvent(schedulerData, item, slotId, slotName, newStart, newEnd);
         }

@@ -271,8 +271,6 @@ class EventItem extends Component {
     }
 
     if (hasConflict) {
-      this.setState({ left, top, width });
-
       if (conflictOccurred !== undefined) {
         conflictOccurred(
           schedulerData,
@@ -287,8 +285,14 @@ class EventItem extends Component {
       } else {
         console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
       }
-      this.subscribeResizeEvent(this.props);
-    } else if (updateEventStart !== undefined) updateEventStart(schedulerData, eventItem, newStart);
+      if (!config.allowConflicts) {
+        this.setState({ left, top, width });
+        this.subscribeResizeEvent(this.props);
+        return;
+      }
+    }
+
+    if (updateEventStart !== undefined) updateEventStart(schedulerData, eventItem, newStart);
   };
 
   cancelStartDrag = ev => {
@@ -430,8 +434,6 @@ class EventItem extends Component {
     }
 
     if (hasConflict) {
-      this.setState({ left, top, width });
-
       if (conflictOccurred !== undefined) {
         conflictOccurred(
           schedulerData,
@@ -446,8 +448,14 @@ class EventItem extends Component {
       } else {
         console.error('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
       }
-      this.subscribeResizeEvent(this.props);
-    } else if (updateEventEnd !== undefined) {
+      if (!config.allowConflicts) {
+        this.setState({ left, top, width });
+        this.subscribeResizeEvent(this.props);
+        return;
+      }
+    }
+
+    if (updateEventEnd !== undefined) {
       updateEventEnd(schedulerData, eventItem, newEnd);
     }
   };

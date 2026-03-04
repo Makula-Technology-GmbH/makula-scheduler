@@ -227,7 +227,10 @@ class ResourceEvents extends Component {
       } else {
         console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
       }
-    } else if (newEvent !== undefined) newEvent(schedulerData, slotId, slotName, startTime, endTime);
+      if (!config.allowConflicts) return;
+    }
+
+    if (newEvent !== undefined) newEvent(schedulerData, slotId, slotName, startTime, endTime);
   };
 
   cancelDrag = ev => {

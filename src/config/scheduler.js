@@ -70,6 +70,7 @@ export default {
   creatable: true,
   crossResourceMove: true,
   checkConflict: false,
+  allowConflicts: false,
   scrollToSpecialDayjsEnabled: true,
   eventItemPopoverEnabled: true,
   eventItemPopoverShowColor: true,

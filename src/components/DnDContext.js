@@ -23,7 +23,7 @@ export default class DnDContext {
 
   getDropSpec = () => ({
     drop: (props, monitor, component) => {
-      const { schedulerData, resourceEvents } = props;
+      const { schedulerData, resourceEvents, conflictOccurred } = props;
       const { cellUnit, localeDayjs } = schedulerData;
       const type = monitor.getItemType();
       const pos = getPos(component.eventContainer);
@@ -61,6 +61,7 @@ export default class DnDContext {
         end: endTime,
         initialStart: initialStartTime,
         initialEnd: initialEndTime,
+        conflictOccurred,
       };
     },
 
