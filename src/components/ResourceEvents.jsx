@@ -204,20 +204,13 @@ class ResourceEvents extends Component {
       });
     }
 
-    if (hasConflict) {
+    if (hasConflict && !config.allowConflicts) {
       const { conflictOccurred } = this.props;
       if (conflictOccurred !== undefined) {
         conflictOccurred(
           schedulerData,
           'New',
-          {
-            id: undefined,
-            start: startTime,
-            end: endTime,
-            slotId,
-            slotName,
-            title: undefined,
-          },
+          { id: undefined, start: startTime, end: endTime, slotId, slotName, title: undefined },
           DnDTypes.EVENT,
           slotId,
           slotName,
@@ -227,10 +220,28 @@ class ResourceEvents extends Component {
       } else {
         console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
       }
-      if (!config.allowConflicts) return;
+      return;
     }
 
     if (newEvent !== undefined) newEvent(schedulerData, slotId, slotName, startTime, endTime);
+
+    if (hasConflict && config.allowConflicts) {
+      const { conflictOccurred } = this.props;
+      if (conflictOccurred !== undefined) {
+        conflictOccurred(
+          schedulerData,
+          'New',
+          { id: undefined, start: startTime, end: endTime, slotId, slotName, title: undefined },
+          DnDTypes.EVENT,
+          slotId,
+          slotName,
+          startTime,
+          endTime
+        );
+      } else {
+        console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
+      }
+    }
   };
 
   cancelDrag = ev => {

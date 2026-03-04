@@ -270,7 +270,7 @@ class EventItem extends Component {
       });
     }
 
-    if (hasConflict) {
+    if (hasConflict && !config.allowConflicts) {
       if (conflictOccurred !== undefined) {
         conflictOccurred(
           schedulerData,
@@ -285,14 +285,29 @@ class EventItem extends Component {
       } else {
         console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
       }
-      if (!config.allowConflicts) {
-        this.setState({ left, top, width });
-        this.subscribeResizeEvent(this.props);
-        return;
-      }
+      this.setState({ left, top, width });
+      this.subscribeResizeEvent(this.props);
+      return;
     }
 
     if (updateEventStart !== undefined) updateEventStart(schedulerData, eventItem, newStart);
+
+    if (hasConflict && config.allowConflicts) {
+      if (conflictOccurred !== undefined) {
+        conflictOccurred(
+          schedulerData,
+          'StartResize',
+          eventItem,
+          DnDTypes.EVENT,
+          slotId,
+          slotName,
+          newStart,
+          eventItem.end
+        );
+      } else {
+        console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
+      }
+    }
   };
 
   cancelStartDrag = ev => {
@@ -433,7 +448,7 @@ class EventItem extends Component {
       });
     }
 
-    if (hasConflict) {
+    if (hasConflict && !config.allowConflicts) {
       if (conflictOccurred !== undefined) {
         conflictOccurred(
           schedulerData,
@@ -448,15 +463,30 @@ class EventItem extends Component {
       } else {
         console.error('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
       }
-      if (!config.allowConflicts) {
-        this.setState({ left, top, width });
-        this.subscribeResizeEvent(this.props);
-        return;
-      }
+      this.setState({ left, top, width });
+      this.subscribeResizeEvent(this.props);
+      return;
     }
 
     if (updateEventEnd !== undefined) {
       updateEventEnd(schedulerData, eventItem, newEnd);
+    }
+
+    if (hasConflict && config.allowConflicts) {
+      if (conflictOccurred !== undefined) {
+        conflictOccurred(
+          schedulerData,
+          'EndResize',
+          eventItem,
+          DnDTypes.EVENT,
+          slotId,
+          slot ? slot.name : null,
+          eventItem.start,
+          newEnd
+        );
+      } else {
+        console.error('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
+      }
     }
   };
 

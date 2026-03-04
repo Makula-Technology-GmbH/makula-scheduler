@@ -77,14 +77,14 @@ export default class DnDSource {
         });
       }
 
-      if (hasConflict) {
+      if (hasConflict && !config.allowConflicts) {
         const conflictOccurred = props.conflictOccurred || dropResult.conflictOccurred;
         if (conflictOccurred !== undefined) {
           conflictOccurred(schedulerData, action, item, type, slotId, slotName, newStart, newEnd);
         } else {
           console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
         }
-        if (!config.allowConflicts) return;
+        return;
       }
 
       if (isEvent) {
@@ -92,6 +92,15 @@ export default class DnDSource {
           moveEvent(schedulerData, item, slotId, slotName, newStart, newEnd);
         }
       } else if (newEvent !== undefined) newEvent(schedulerData, slotId, slotName, newStart, newEnd, type, item);
+
+      if (hasConflict && config.allowConflicts) {
+        const conflictOccurred = props.conflictOccurred || dropResult.conflictOccurred;
+        if (conflictOccurred !== undefined) {
+          conflictOccurred(schedulerData, action, item, type, slotId, slotName, newStart, newEnd);
+        } else {
+          console.log('Conflict occurred, set conflictOccurred func in Scheduler to handle it');
+        }
+      }
     },
 
     canDrag: props => {
