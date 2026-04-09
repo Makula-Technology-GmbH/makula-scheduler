@@ -426,7 +426,7 @@ function Scheduler(props) {
     const contentPaddingBottom = contentScrollbarHeight === 0 ? resourceScrollbarHeight : 0;
 
     let schedulerContentStyle = {
-      overflowX: viewType === ViewType.Week ? 'hidden' : 'auto',
+      overflowX: 'auto',
       overflowY: 'auto',
       margin: '0px',
       position: 'relative',
