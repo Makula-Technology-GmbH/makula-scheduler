@@ -349,6 +349,9 @@ export default class SchedulerData {
       : resourceTableConfigWidth;
     if (this.isSchedulerResponsive() && this.getContentTableWidth() + resourceTableWidth < schedulerWidth)
       resourceTableWidth = schedulerWidth - this.getContentTableWidth();
+    console.log('schedulerWidth', schedulerWidth);
+    console.log('resourceTableConfigWidth', resourceTableConfigWidth);
+    console.log('resourceTableWidth', resourceTableWidth);
     return resourceTableWidth;
   }
 
