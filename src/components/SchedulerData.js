@@ -359,7 +359,7 @@ export default class SchedulerData {
   getContentCellWidth() {
     const contentCellConfigWidth = this.getContentCellConfigWidth();
     const schedulerWidth = this.getSchedulerWidth();
-    return this.isContentViewResponsive()
+    return this.isContentViewResponsive() && this.isResourceViewResponsive()
       ? parseInt((schedulerWidth * Number(contentCellConfigWidth.slice(0, -1))) / 100, 10)
       : contentCellConfigWidth;
   }
