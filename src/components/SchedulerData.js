@@ -347,7 +347,12 @@ export default class SchedulerData {
     let resourceTableWidth = this.isResourceViewResponsive()
       ? parseInt((schedulerWidth * Number(resourceTableConfigWidth.slice(0, -1))) / 100, 10)
       : resourceTableConfigWidth;
-    if (this.isSchedulerResponsive() && this.getContentTableWidth() + resourceTableWidth < schedulerWidth)
+    // Only expand resource table in non-week views when there's extra space
+    if (
+      this.viewType !== ViewType.Week &&
+      this.isSchedulerResponsive() &&
+      this.getContentTableWidth() + resourceTableWidth < schedulerWidth
+    )
       resourceTableWidth = schedulerWidth - this.getContentTableWidth();
     console.log('schedulerWidth', schedulerWidth);
     console.log('resourceTableConfigWidth', resourceTableConfigWidth);
@@ -358,9 +363,21 @@ export default class SchedulerData {
   getContentCellWidth() {
     const contentCellConfigWidth = this.getContentCellConfigWidth();
     const schedulerWidth = this.getSchedulerWidth();
-    return this.isContentViewResponsive()
-      ? parseInt((schedulerWidth * Number(contentCellConfigWidth.slice(0, -1))) / 100, 10)
-      : contentCellConfigWidth;
+
+    if (this.isContentViewResponsive()) {
+      const resourceTableConfigWidth = this.getResourceTableConfigWidth();
+      const isResourceTableFixed = typeof resourceTableConfigWidth === 'number';
+
+      // For week view with fixed resource table, calculate cell width as percentage of remaining space
+      let baseWidth = schedulerWidth;
+      if (this.viewType === ViewType.Week && isResourceTableFixed) {
+        baseWidth = schedulerWidth - resourceTableConfigWidth;
+      }
+
+      return parseInt((baseWidth * Number(contentCellConfigWidth.slice(0, -1))) / 100, 10);
+    }
+
+    return contentCellConfigWidth;
   }
 
   getContentTableWidth() {
