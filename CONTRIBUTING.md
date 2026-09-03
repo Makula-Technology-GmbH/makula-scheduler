@@ -12,67 +12,64 @@ If you're new to the project, it's a good idea to familiarize yourself with the 
 
 ## 🚀 Release Process & Versioning
 
-Our project uses an **automated release workflow** that publishes versions based on your Pull Request title. Understanding this process is crucial for contributing:
+Releases are driven by the **version in `package.json`**. Whenever that version
+changes on `master`, the [`Publish to npm`](.github/workflows/npm-publish.yml)
+workflow builds the library and publishes it.
 
 ### Branch Strategy
 
-- **`main` branch**: Stable releases only. All PRs should be made against this branch.
-- Merging to `main` triggers automatic versioning and release
+- **`master` branch**: the release branch. All PRs should target it.
+- A version bump landing on `master` triggers the publish.
 
-### Automatic Versioning Based on PR Title
+### Cutting a Release
 
-When your PR is merged, the version is automatically bumped based on your **PR title**:
+Maintainers release by bumping the version and pushing:
 
-| PR Title Format                                 | Version Bump | Example              |
-| ----------------------------------------------- | ------------ | -------------------- |
-| `fix: description`                              | Patch        | 5.3.0 → 5.3.1        |
-| `feat: description`                             | Minor        | 5.3.0 → 5.4.0        |
-| `breaking: description` or `major: description` | Major        | 5.3.0 → 6.0.0        |
-| Any other format                                | Beta         | 5.3.0 → 5.3.1-beta.1 |
+```bash
+npm version patch   # 2.3.10 -> 2.3.11  (bug fixes)
+npm version minor   # 2.3.10 -> 2.4.0   (new features)
+npm version major   # 2.3.10 -> 3.0.0   (breaking changes)
 
-**Examples of proper PR titles:**
+git push origin master
+```
 
-- ✅ `fix: resolve calendar overflow issue`
-- ✅ `feat: add custom event rendering`
-- ✅ `breaking: remove deprecated props`
-- ❌ `Updated scheduler component` (will create beta release)
-- ❌ `bug fixes` (will create beta release)
+Editing the `version` field in `package.json` by hand works exactly the same
+way — the workflow only cares that the version changed.
 
-### Beta Releases
+### What Happens on a Version Bump
 
-**Option 1 - Automatic (Recommended for most contributors):**
+1. ✅ Checks npm for the version — if it is already published, the run stops
+2. ✅ Installs dependencies with `npm ci`
+3. ✅ Builds the library (`npm run build:lib`)
+4. ✅ Verifies the package entry point exists and prints the tarball contents
+5. ✅ Publishes to npm with a provenance attestation
+6. ✅ Creates and pushes the `v<version>` Git tag
+7. ✅ Creates a GitHub Release with generated changelog
 
-- If your PR title doesn't follow the convention above, it will automatically create a beta release
-- Beta versions are published to npm with the `beta` tag
+Because npm is the source of truth, pushes that touch `package.json` without
+changing the version, re-runs, and reverts are all no-ops — there is no risk of
+a double publish.
 
-**Option 2 - Manual:**
+### Pre-releases
 
-- Add the `beta` label to your PR for experimental features
-- Beta releases increment like: 5.3.0 → 5.3.1-beta.1 → 5.3.1-beta.2
+Versions with a pre-release identifier are published under a matching npm
+dist-tag instead of `latest`, and do not get a GitHub Release:
 
-**Graduating from Beta to Stable:**
+```bash
+npm version 2.4.0-beta.1   # published as `beta`
+npm version 2.4.0-rc.1     # published as `rc`
+```
 
-- When ready, merge a PR with proper title format (fix/feat/breaking) without the `beta` label
-- Example: 5.3.1-beta.3 → 5.3.1 (stable release)
+Install them explicitly with `npm install makula-schedule@beta`. Graduate a
+pre-release by bumping to the plain version (`2.4.0`), which then becomes
+`latest`.
 
-### What Happens After Merge?
+### Repository Setup
 
-For **stable releases** (fix/feat/breaking), the workflow automatically:
-
-1. ✅ Updates version in package.json
-2. ✅ Builds the library
-3. ✅ Runs tests
-4. ✅ Publishes to npm
-5. ✅ Creates a Git tag
-6. ✅ Creates a GitHub Release with changelog
-7. ✅ Comments on your PR with release details
-
-For **beta releases**, the workflow:
-
-1. ✅ Updates version in package.json
-2. ✅ Builds and tests
-3. ✅ Publishes to npm with `beta` tag
-4. ✅ Comments on your PR
+The workflow needs one secret: **`NPM_TOKEN`**, an npm automation token with
+publish rights for the package, set under *Settings → Secrets and variables →
+Actions*. Provenance attestation is on by default; set the `NPM_PROVENANCE`
+repository variable to `false` to disable it.
 
 ### How to Contribute
 
