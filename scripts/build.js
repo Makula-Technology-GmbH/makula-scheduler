@@ -29,16 +29,15 @@ async function build() {
     console.log('Transpiling js with babel...');
     await exec(`babel ${sourceDir} --out-dir ${jsTarget} --ignore "${excludedFolders}"`);
 
+    // Ship only scheduler CSS. Do NOT bundle antd's static CSS:
+    // antd 5/6 inject component styles via CSS-in-JS. The old build copied a
+    // purged antd@4 stylesheet into style.css, which double-paints Popover
+    // carets (hourglass arrows) when consumers run antd 6.
     console.log('Copying CSS Files...');
     await fs.copy(`${sourceDir}/css/`, cssTarget);
 
     console.log('Copying Typescript Files...');
     await fs.copy(`${typingDir}/`, targetDir);
-
-    console.log('Copying webpack-bundled CSS (includes antd CSS)...');
-    const webpackCssSource = path.resolve(root, 'dist-webpack/css/style.css');
-    const webpackCssTarget = path.resolve(cssTarget, 'style.css');
-    await fs.copy(webpackCssSource, webpackCssTarget);
 
     console.log('Success!');
   } catch (e) {
