@@ -80,6 +80,9 @@ export default {
   getSummaryFunc: undefined,
   getCustomDateFunc: undefined,
   getNonAgendaViewBodyCellBgColorFunc: undefined,
+  // Opt-in: when set, a day cell spans the resource's working hours for that day
+  // instead of the full 24 hours. See getDayCellWorkingWindow.
+  getDayCellWorkingWindowFunc: undefined,
   getScrollSpecialDayjsFunc: getScrollSpecialDayjs,
   getDateLabelFunc: getDateLabel,
   getEventTextFunc: getEventText,

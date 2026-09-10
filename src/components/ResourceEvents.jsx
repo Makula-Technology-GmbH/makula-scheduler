@@ -2,6 +2,7 @@ import { PropTypes } from 'prop-types';
 import React, { Component } from 'react';
 import { useDrop } from 'react-dnd';
 import { CellUnit, DATETIME_FORMAT, DnDTypes, SummaryPos } from '../config/default';
+import { getDayCellRangeGeometry } from '../helper/dayCellWindow';
 import { getPos } from '../helper/utility';
 import AddMore from './AddMore';
 import EventItem from './EventItem';
@@ -331,42 +332,24 @@ class ResourceEvents extends Component {
             let isEnd = eventEnd <= durationEnd;
             let left = index * cellWidth + (index > 0 ? 2 : 3);
             let width = evt.span * cellWidth - (index > 0 ? 5 : 6) > 0 ? evt.span * cellWidth - (index > 0 ? 5 : 6) : 0;
-            const dayStart = localeDayjs(new Date(headerItem.start)).startOf('day');
-            const dayDurationMinutes = 1440;
-            const baseCellWidth = cellWidth - (index > 0 ? 5 : 6);
 
             if (cellUnit === CellUnit.Day) {
-              if (evt.span === 1) {
-                const startOffsetMinutes = eventStart.diff(dayStart, 'minute');
-                const eventDurationMinutes = eventEnd.diff(eventStart, 'minute');
-                const startPercentage = startOffsetMinutes / dayDurationMinutes;
-                const durationPercentage = eventDurationMinutes / dayDurationMinutes;
-                const leftOffset = baseCellWidth * startPercentage;
-                const eventWidth = baseCellWidth * durationPercentage;
+              // A day cell spans the resource's working hours for that day when
+              // behaviors.getDayCellWorkingWindowFunc resolves them, so an event
+              // filling those hours fills the cell. Days without a working
+              // window keep the full-day scale.
+              const geometry = getDayCellRangeGeometry(
+                schedulerData,
+                resourceEvents,
+                index,
+                evt.span,
+                evt.eventItem.start,
+                evt.eventItem.end,
+                cellWidth
+              );
 
-                left = index * cellWidth + (index > 0 ? 2 : 3) + leftOffset;
-                width = Math.max(1, eventWidth); // ensure minimum width of 1px
-              } else {
-                const headerStart = localeDayjs(new Date(headerItem.start));
-                const headerEnd = localeDayjs(new Date(headerItem.end));
-                const isFirstDay = eventStart >= headerStart && eventStart < headerEnd;
-
-                if (isFirstDay) {
-                  const eventStartDayStart = eventStart.startOf('day');
-                  const eventEndDayEnd = eventEnd.endOf('day');
-                  const totalSpanMinutes = eventEndDayEnd.diff(eventStartDayStart, 'minute');
-                  const eventStartOffsetMinutes = eventStart.diff(eventStartDayStart, 'minute');
-                  const eventDurationMinutes = eventEnd.diff(eventStart, 'minute');
-                  const startPercentage = eventStartOffsetMinutes / dayDurationMinutes;
-                  const durationPercentage = totalSpanMinutes > 0 ? eventDurationMinutes / totalSpanMinutes : 1;
-                  const totalWidth = evt.span * cellWidth - (index > 0 ? 5 : 6);
-                  const leftOffset = cellWidth * startPercentage;
-                  const eventWidth = totalWidth * durationPercentage;
-
-                  left = index * cellWidth + (index > 0 ? 2 : 3) + leftOffset;
-                  width = Math.max(1, eventWidth);
-                }
-              }
+              left = geometry.left;
+              width = geometry.width;
             } else {
               width = evt.span * cellWidth - (index > 0 ? 5 : 6) > 0 ? evt.span * cellWidth - (index > 0 ? 5 : 6) : 0;
             }
@@ -451,31 +434,20 @@ class ResourceEvents extends Component {
       let previewWidth = dropPreview.cellSpan * cellWidth - (idx > 0 ? 5 : 6);
 
       if (cellUnit === CellUnit.Day) {
-        const previewStart = localeDayjs(dropPreview.newStart);
-        const previewEnd = localeDayjs(dropPreview.newEnd);
-        const dayStart = localeDayjs(resourceEvents.headerItems[idx].start).startOf('day');
-        const dayDurationMinutes = 1440;
-        const baseCellWidth = cellWidth - (idx > 0 ? 5 : 6);
+        // Same working-hours scale as the events themselves, so the preview
+        // lands where the event will be drawn.
+        const geometry = getDayCellRangeGeometry(
+          schedulerData,
+          resourceEvents,
+          idx,
+          dropPreview.cellSpan,
+          dropPreview.newStart,
+          dropPreview.newEnd,
+          cellWidth
+        );
 
-        if (dropPreview.cellSpan === 1) {
-          const startOffsetMinutes = previewStart.diff(dayStart, 'minute');
-          const eventDurationMinutes = previewEnd.diff(previewStart, 'minute');
-          const startPercentage = startOffsetMinutes / dayDurationMinutes;
-          const durationPercentage = eventDurationMinutes / dayDurationMinutes;
-          previewLeft = idx * cellWidth + (idx > 0 ? 2 : 3) + baseCellWidth * startPercentage;
-          previewWidth = Math.max(1, baseCellWidth * durationPercentage);
-        } else {
-          const eventStartDayStart = previewStart.startOf('day');
-          const eventEndDayEnd = previewEnd.endOf('day');
-          const totalSpanMinutes = eventEndDayEnd.diff(eventStartDayStart, 'minute');
-          const startOffsetMinutes = previewStart.diff(eventStartDayStart, 'minute');
-          const eventDurationMinutes = previewEnd.diff(previewStart, 'minute');
-          const startPercentage = startOffsetMinutes / dayDurationMinutes;
-          const durationPercentage = totalSpanMinutes > 0 ? eventDurationMinutes / totalSpanMinutes : 1;
-          const totalWidth = dropPreview.cellSpan * cellWidth - (idx > 0 ? 5 : 6);
-          previewLeft = idx * cellWidth + (idx > 0 ? 2 : 3) + cellWidth * startPercentage;
-          previewWidth = Math.max(1, totalWidth * durationPercentage);
-        }
+        previewLeft = geometry.left;
+        previewWidth = geometry.width;
       }
 
       const { eventItemTemplateResolver } = this.props;

@@ -462,6 +462,20 @@ export interface SchedulerDataBehaviors<EventType extends EventItem = EventItem>
     slotId: string,
     header: { nonWorkingTime: boolean; time: string }
   ) => string;
+  /**
+   * Working hours of one day cell for one resource, as minutes from midnight
+   * (e.g. 9am-5pm is `{ from: 540, to: 1020 }`). Only used by views whose
+   * cellUnit is `CellUnit.Day` (week, month, quarter, year): the cell spans that
+   * window instead of the full 24 hours, so an event covering the resource's
+   * working hours covers the whole cell.
+   *
+   * Return `null` (or nothing) for a day off — the cell keeps the full-day scale.
+   */
+  getDayCellWorkingWindowFunc?: (
+    schedulerData: SchedulerData<EventType>,
+    slotId: string,
+    time: string
+  ) => { from: number; to: number } | null | undefined;
 }
 
 export const DATE_FORMAT = 'YYYY-MM-DD';

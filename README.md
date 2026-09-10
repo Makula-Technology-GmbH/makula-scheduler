@@ -790,6 +790,35 @@ getNonAgendaViewBodyCellBgColor(schedulerData, slotId, header);
 
 Method that sets the background color of cells dynamically.
 
+#### getDayCellWorkingWindowFunc
+
+```js
+getDayCellWorkingWindowFunc(schedulerData, slotId, time);
+// -> { from: 540, to: 1020 } | null
+```
+
+Optional. Method that defines the working hours of a single day cell for a single
+resource, as minutes from midnight (9am-5pm is `{ from: 540, to: 1020 }`).
+
+Only views whose `cellUnit` is `CellUnit.Day` (week, month, quarter, year) use it.
+When it returns a window, the cell spans that window instead of the full 24 hours,
+so an event that covers the resource's working hours covers the whole cell, and
+one that covers half of them covers half the cell. Events that fall outside the
+window are clamped onto the nearest cell edge.
+
+Return `null` (or nothing) for a day the resource does not work: that cell keeps
+the full-day scale, so a day off still renders as a plain full-width day. Leave
+the behavior unset to keep the default midnight-to-midnight scale everywhere.
+
+```js
+const businessHours = { 1: { from: 540, to: 1020 } }; // Monday 9am-5pm
+
+schedulerData.behaviors.getDayCellWorkingWindowFunc = (schedulerData, slotId, time) => {
+  const hours = workingHoursByResource[slotId] ?? businessHours;
+  return hours[new Date(time).getDay()] ?? null;
+};
+```
+
 #### getScrollSpecialDayjsFunc
 
 ```js
